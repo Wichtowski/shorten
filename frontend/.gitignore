@@ -46,3 +46,4 @@ wrangler.local.jsonc
 next-env.d.ts
 
 .vinext
+.dev.vars*

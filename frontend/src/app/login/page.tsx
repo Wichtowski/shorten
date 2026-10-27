@@ -42,71 +42,55 @@ export default function LoginPage() {
 
   return (
     <AuthFrame
-      title="Welcome back"
+      title="Log in"
       footerQuestion="Need an account?"
       footerLinkHref="/signup"
       footerLinkText="Sign up"
     >
-      <div className="space-y-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="field-label uppercase tracking-[0.22em]">
-              Email address
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="field"
-              placeholder="name@company.com"
-              autoComplete="email"
-              suppressHydrationWarning
-              required
-            />
-          </div>
-          <div>
-            <div className="mb-2 flex items-center justify-between gap-4">
-              <label htmlFor="password" className="field-label mb-0 uppercase tracking-[0.22em]">
-                Password
-              </label>
-            </div>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="field"
-              placeholder="••••••••"
-              autoComplete="current-password"
-              suppressHydrationWarning
-              required
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="email" className="field-label">
+            Email address
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="field"
+            placeholder="name@company.com"
+            autoComplete="email"
+            suppressHydrationWarning
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="password" className="field-label">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="field"
+            placeholder="••••••••"
+            autoComplete="current-password"
+            suppressHydrationWarning
+            required
+          />
+        </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <label className="flex items-center gap-3 text-sm text-slate-300">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-white/15 bg-slate-950/70 text-cyan-400 focus:ring-cyan-300/30"
-                autoComplete="on"
-                suppressHydrationWarning
-              />
-              Remember this device
-            </label>
-          </div>
+        {error && (
+          <p role="alert" className="border-rule border-ink bg-alarm px-4 py-3 font-bold">
+            {error}
+          </p>
+        )}
 
-          {error && (
-            <p className="rounded-2xl border border-rose-300/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-              {error}
-            </p>
-          )}
-
-          <button type="submit" disabled={loading} className="primary-button w-full">
-            {loading ? "Logging in..." : "Sign in"}
-          </button>
-        </form>
-      </div>
+        <button type="submit" disabled={loading} className="btn btn-signal w-full py-4 text-lg">
+          {loading ? "Logging in..." : "Log in"}
+        </button>
+      </form>
     </AuthFrame>
   );
 }

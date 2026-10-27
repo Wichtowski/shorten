@@ -9,22 +9,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: {
-          lightest: "#E2E8F0",
-          light: "#94A3B8",
-          DEFAULT: "#475569",
-          dark: "#334155",
-          darkest: "#1E293B"
-        }
+        paper: "var(--paper)",
+        ink: "var(--ink)",
+        signal: "var(--signal)",
+        alarm: "var(--alarm)",
+        smoke: "var(--smoke)"
       },
-      keyframes: {
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(-10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" }
-        }
-      },
-      animation: {
-        "fade-in": "fade-in 0.3s ease-out"
+      borderWidth: {
+        rule: "var(--rule)"
       }
     }
   },

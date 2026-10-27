@@ -49,89 +49,87 @@ export default function SignupPage() {
 
   return (
     <AuthFrame
-      title="Create your account"
+      title="Sign up"
       footerQuestion="Already have an account?"
       footerLinkHref="/login"
-      footerLinkText="Login"
+      footerLinkText="Log in"
     >
-      <div className="space-y-6">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="field-label uppercase tracking-[0.22em]">
-              Email address
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="field"
-              placeholder="name@company.com"
-              autoComplete="email"
-              suppressHydrationWarning
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="username" className="field-label uppercase tracking-[0.22em]">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="field"
-              placeholder="your-handle"
-              autoComplete="username"
-              suppressHydrationWarning
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="field-label uppercase tracking-[0.22em]">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="field"
-              placeholder="••••••••"
-              autoComplete="new-password"
-              suppressHydrationWarning
-              required
-            />
-          </div>
-          <div>
-            <label htmlFor="confirmPassword" className="field-label uppercase tracking-[0.22em]">
-              Confirm password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="field"
-              placeholder="••••••••"
-              autoComplete="new-password"
-              suppressHydrationWarning
-              required
-            />
-          </div>
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="email" className="field-label">
+            Email address
+          </label>
+          <input
+            type="email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="field"
+            placeholder="name@company.com"
+            autoComplete="email"
+            suppressHydrationWarning
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="username" className="field-label">
+            Username
+          </label>
+          <input
+            type="text"
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="field"
+            placeholder="your-handle"
+            autoComplete="username"
+            suppressHydrationWarning
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="password" className="field-label">
+            Password
+          </label>
+          <input
+            type="password"
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="field"
+            placeholder="••••••••"
+            autoComplete="new-password"
+            suppressHydrationWarning
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="confirmPassword" className="field-label">
+            Confirm password
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="field"
+            placeholder="••••••••"
+            autoComplete="new-password"
+            suppressHydrationWarning
+            required
+          />
+        </div>
 
-          {error && (
-            <p className="rounded-2xl border border-rose-300/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
-              {error}
-            </p>
-          )}
+        {error && (
+          <p role="alert" className="border-rule border-ink bg-alarm px-4 py-3 font-bold">
+            {error}
+          </p>
+        )}
 
-          <button type="submit" disabled={loading} className="primary-button w-full">
-            {loading ? "Creating account..." : "Create account"}
-          </button>
-        </form>
-      </div>
+        <button type="submit" disabled={loading} className="btn btn-signal w-full py-4 text-lg">
+          {loading ? "Creating account..." : "Create account"}
+        </button>
+      </form>
     </AuthFrame>
   );
 }

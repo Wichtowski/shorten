@@ -1,12 +1,15 @@
-import { Spinner } from "@components/common/Spinner";
+import Link from "next/link";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 text-center">
-      <div className="flex flex-col items-center gap-4">
-        <Spinner />
-        <p className="text-sm leading-6 text-[#bac9cc]">Page not found</p>
-      </div>
-    </div>
+    <section className="frame py-14">
+      <h1 className="display text-[clamp(6rem,30vw,22rem)]">404</h1>
+      <p className="mt-6 max-w-xl text-lg leading-7">
+        Nothing lives at this address.{" "}
+        <Link href="/" className="text-link">
+          Make a short link
+        </Link>
+      </p>
+    </section>
   );
 }

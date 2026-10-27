@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ShortenedUrl {
   originalUrl: string;
@@ -10,14 +10,19 @@ const STORAGE_KEY = "recent_shortens";
 const MAX_RECENT_SHORTENS = 5;
 
 export const useRecentShortens = () => {
-  const [recentShortens, setRecentShortens] = useState<ShortenedUrl[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
+  const [recentShortens, setRecentShortens] = useState<ShortenedUrl[]>([]);
 
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  });
+  // Load after mount so the first client render matches the server-rendered HTML
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setRecentShortens(JSON.parse(stored));
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const addShorten = (originalUrl: string, shortUrl: string) => {
     const newShorten: ShortenedUrl = {
