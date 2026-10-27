@@ -128,7 +128,7 @@ export const UrlShortener = () => {
             </p>
           )}
 
-          <p id="url-hint" className="mt-4 max-w-2xl leading-6">
+          <p id="url-hint" className="mt-4 leading-6">
             HTTPS links only.{" "}
             {user ? (
               "Your links are saved to your account."
