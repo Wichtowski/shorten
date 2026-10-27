@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Mono } from "next/font/google";
 import { NotificationProvider } from "@components/context/NotificationContext";
 import "./globals.css";
 import { Navbar } from "@components/layout/Navbar";
@@ -7,27 +7,23 @@ import { UserProvider } from "@components/context/UserContext";
 import { env } from "cloudflare:workers";
 import { assertJwtConfigured } from "@lib/runtime-config";
 
-const hankenGrotesk = Hanken_Grotesk({
-  variable: "--font-geist-sans",
-  subsets: ["latin"]
+const archivo = Archivo({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  axes: ["wdth"]
 });
 
-const jetBrainsMono = JetBrains_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"]
-});
-
-const displayFont = Hanken_Grotesk({
-  variable: "--font-display",
-  subsets: ["latin"]
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-mono",
+  subsets: ["latin"],
+  weight: ["500", "700"]
 });
 
 assertJwtConfigured(env);
 
 export const metadata: Metadata = {
   title: "Shorten",
-  description:
-    "Shorten is a URL shortener that helps you create clean links, track clicks, and manage your shortcuts.",
+  description: "Turn long HTTPS links into short ones and see how often they get clicked.",
   icons: {
     icon: "/favicon.ico"
   }
@@ -40,11 +36,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${hankenGrotesk.variable} ${jetBrainsMono.variable} ${displayFont.variable} app-shell`}>
+      <body className={`${archivo.variable} ${plexMono.variable}`}>
         <UserProvider>
-          <Navbar />
           <NotificationProvider>
-            <main className="relative pt-16">{children}</main>
+            <Navbar />
+            <main>{children}</main>
           </NotificationProvider>
         </UserProvider>
       </body>

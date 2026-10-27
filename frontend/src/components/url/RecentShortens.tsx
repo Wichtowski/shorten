@@ -1,99 +1,52 @@
-import React, { useState } from "react";
-import { useRecentShortens } from "@hooks/useRecentShortens";
+import React from "react";
 
-export const RecentShortens = () => {
-  const { recentShortens, clearRecentShortens, updateShorten } = useRecentShortens();
-  const [editIndex, setEditIndex] = useState<number | null>(null);
-  const [editValue, setEditValue] = useState("");
+interface ShortenedUrl {
+  originalUrl: string;
+  shortUrl: string;
+  timestamp: number;
+}
 
+interface RecentShortensProps {
+  recentShortens: ShortenedUrl[];
+  onClear: () => void;
+}
+
+const dateFormatter = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
+
+export const RecentShortens = ({ recentShortens, onClear }: RecentShortensProps) => {
   if (recentShortens.length === 0) {
     return null;
   }
 
-  const handleEdit = (index: number, currentValue: string) => {
-    setEditIndex(index);
-    setEditValue(currentValue);
-  };
-
-  const handleSave = (index: number) => {
-    updateShorten(index, { originalUrl: editValue });
-    setEditIndex(null);
-    setEditValue("");
-  };
-
-  const handleCancel = () => {
-    setEditIndex(null);
-    setEditValue("");
-  };
-
   return (
-    <div className="surface rounded-xl p-6 sm:p-8">
-      <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="eyebrow">Recent activity</p>
-          <h3 className="mt-3 text-xl font-semibold text-slate-100">Recent shortenings</h3>
+    <section className="band">
+      <div className="frame py-8 sm:py-10">
+        <div className="mb-5 flex items-end justify-between gap-4">
+          <h2 className="display text-5xl sm:text-6xl">Recent</h2>
+          <button onClick={onClear} className="btn btn-small">
+            Clear history
+          </button>
         </div>
-        <button
-          onClick={clearRecentShortens}
-          className="subtle-button"
-        >
-          Clear History
-        </button>
-      </div>
-      <div className="space-y-3">
-        {recentShortens.map((shorten, index) => (
-          <div
-            key={index}
-            className="flex flex-col gap-4 rounded-lg border border-white/[0.05] bg-[#171c21] p-4 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <div className="min-w-0 flex-1">
-              {editIndex === index ? (
-                <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                  <input
-                    type="text"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="field flex-1 px-3 py-2"
-                  />
-                  <button
-                    onClick={() => handleSave(index)}
-                    className="primary-button px-3 py-2 text-sm"
-                  >
-                    Save
-                  </button>
-                  <button
-                    onClick={handleCancel}
-                    className="subtle-button px-3 py-2 text-sm"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <p className="truncate font-medium text-slate-100">{shorten.originalUrl}</p>
-                  <button
-                    onClick={() => handleEdit(index, shorten.originalUrl)}
-                    className="subtle-button px-2 py-1 text-xs"
-                  >
-                    Edit
-                  </button>
-                </div>
-              )}
+        <ul className="border-t-rule border-ink">
+          {recentShortens.map((shorten) => (
+            <li
+              key={`${shorten.shortUrl}-${shorten.timestamp}`}
+              className="grid gap-1 border-b-rule border-ink py-3 sm:grid-cols-[minmax(0,16rem)_minmax(0,1fr)_auto] sm:items-baseline sm:gap-6"
+            >
               <a
                 href={`/r/${shorten.shortUrl}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 block truncate text-sm text-cyan-300 transition hover:text-cyan-100"
+                className="url truncate text-lg font-bold underline decoration-[3px] underline-offset-4 hover:bg-signal"
               >
-                {shorten.shortUrl}
+                /r/{shorten.shortUrl}
               </a>
-            </div>
-            <span className="whitespace-nowrap text-sm text-[#bac9cc]">
-              {new Date(shorten.timestamp).toLocaleDateString()}
-            </span>
-          </div>
-        ))}
+              <span className="url truncate text-sm">{shorten.originalUrl}</span>
+              <span className="text-sm">{dateFormatter.format(new Date(shorten.timestamp))}</span>
+            </li>
+          ))}
+        </ul>
       </div>
-    </div>
+    </section>
   );
 };

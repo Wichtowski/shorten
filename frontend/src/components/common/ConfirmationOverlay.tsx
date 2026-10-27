@@ -20,15 +20,19 @@ export function ConfirmationOverlay({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-md">
-      <div className="surface-strong w-full max-w-md rounded-[1.75rem] p-6">
-        <h3 className="text-xl font-semibold text-slate-50">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-slate-300">{message}</p>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="subtle-button"
-          >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/70 px-4">
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="confirmation-title"
+        className="w-full max-w-md border-rule border-ink bg-paper"
+      >
+        <h3 id="confirmation-title" className="display band bg-alarm px-5 py-4 text-4xl">
+          {title}
+        </h3>
+        <p className="px-5 py-5 leading-6">{message}</p>
+        <div className="flex justify-end gap-3 px-5 pb-5">
+          <button onClick={onClose} className="btn" autoFocus>
             {cancelText}
           </button>
           <button
@@ -36,7 +40,7 @@ export function ConfirmationOverlay({
               onConfirm();
               onClose();
             }}
-            className="rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-400"
+            className="btn btn-alarm"
           >
             {confirmText}
           </button>

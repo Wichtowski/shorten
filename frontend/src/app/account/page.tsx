@@ -13,28 +13,14 @@ import { Url } from "@shared/url";
 import { apiClient } from "@lib/api-client";
 import { tokenToUser } from "@lib/auth";
 import { formatShortUrl } from "@utils/shortUrl";
-import { FaArrowLeftLong } from "react-icons/fa6";
-import { FiCalendar, FiFileText, FiMousePointer } from "react-icons/fi";
+import { UrlTable } from "@components/account/UrlTable";
+import Link from "next/link";
 
 interface ShortenedUrl {
   originalUrl: string;
   shortUrl: string;
   timestamp: number;
 }
-
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric"
-});
-
-const dateTimeFormatter = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  hour: "numeric",
-  minute: "2-digit"
-});
 
 export default function MyUrlsPage() {
   const { user, logout } = useUser();
@@ -102,7 +88,7 @@ export default function MyUrlsPage() {
             setSyncedUrls(refreshedData.urls);
             setShouldUseLocal(false);
             setNotification({
-              message: "Migrated anonymous shortens to your account.",
+              message: "Links you made before signing in were added to your account.",
               type: "success"
             });
             setIsInitialLoad(false);
@@ -129,7 +115,10 @@ export default function MyUrlsPage() {
         }
       } catch (err) {
         console.error("Error syncing URLs:", err);
-        setNotification({ message: "Failed to fetch URLs", type: "error" });
+        setNotification({
+          message: "Couldn't load your links. Refresh to try again.",
+          type: "error"
+        });
       } finally {
         setIsInitialLoad(false);
       }
@@ -140,12 +129,12 @@ export default function MyUrlsPage() {
 
   const handleCopyOriginalUrl = (url: string) => {
     navigator.clipboard.writeText(url);
-    setNotification({ message: "Original URL copied to clipboard!", type: "success" });
+    setNotification({ message: "Original link copied", type: "success" });
   };
 
   const handleCopyShortUrl = (slug: string) => {
     navigator.clipboard.writeText(formatShortUrl(slug));
-    setNotification({ message: "URL copied to clipboard!", type: "success" });
+    setNotification({ message: "Link copied", type: "success" });
   };
 
   const handleDeleteClick = (urlId: string) => {
@@ -158,10 +147,10 @@ export default function MyUrlsPage() {
     try {
       await deleteUrl(deleteConfirmation.urlId);
       setSyncedUrls((urls) => urls.filter((url) => url.id !== deleteConfirmation.urlId));
-      setNotification({ message: "URL deleted successfully", type: "success" });
+      setNotification({ message: "Link deleted", type: "success" });
     } catch (err) {
       setNotification({
-        message: err instanceof Error ? err.message : "Failed to delete URL",
+        message: err instanceof Error ? err.message : "Couldn't delete that link",
         type: "error"
       });
     } finally {
@@ -176,7 +165,7 @@ export default function MyUrlsPage() {
   const handleDeleteAccountConfirm = async () => {
     try {
       await deleteAccount();
-      setNotification({ message: "Account deleted successfully", type: "success" });
+      setNotification({ message: "Account deleted", type: "success" });
     } catch (err) {
       console.error("Error deleting account:", err);
       setNotification({
@@ -196,11 +185,9 @@ export default function MyUrlsPage() {
   // Use local URLs by default, only switch to server data if they don't match
   const displayUrls = shouldUseLocal ? localUrls : syncedUrls;
   const totalClicks = displayUrls.reduce((sum, url) => sum + url.clicks, 0);
-  const mostRecentUrl = displayUrls[0];
-  const topUrls = displayUrls.slice(0, 4);
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 pb-28 pt-12 sm:px-6 lg:px-16">
+    <>
       {notification && (
         <Notification
           message={notification.message}
@@ -212,253 +199,86 @@ export default function MyUrlsPage() {
         isOpen={deleteConfirmation.isOpen}
         onClose={() => setDeleteConfirmation({ isOpen: false, urlId: null })}
         onConfirm={handleDeleteConfirm}
-        title="Delete URL"
-        message="Are you sure you want to delete this URL? This action cannot be undone."
-        confirmText="Delete"
+        title="Delete link?"
+        message="The short link will stop working right away. This can't be undone."
+        confirmText="Delete link"
       />
       <ConfirmationOverlay
         isOpen={deleteAccountConfirmation}
         onClose={() => setDeleteAccountConfirmation(false)}
         onConfirm={handleDeleteAccountConfirm}
-        title="Delete Account"
-        message="Are you sure you want to delete your account? This action cannot be undone."
-        confirmText="Delete"
+        title="Delete account?"
+        message="Your account and every short link you made will be removed. This can't be undone."
+        confirmText="Delete account"
       />
-      <div className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <p className="eyebrow mb-2">Welcome back, {user.username || user.email}</p>
-          <h1 className="hero-title">Dashboard Overview</h1>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <div className="flex items-center gap-2 rounded-lg border border-white/[0.05] bg-[#252a30] px-4 py-2">
-            <span className="text-cyan-300">
-              <FiCalendar size={20} aria-hidden="true" />
-            </span>
-            <span className="mono-label">Last 30 Days</span>
-          </div>
-          <button onClick={handleLogout} className="secondary-button py-2">
-            Logout
-          </button>
-        </div>
-      </div>
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="metric-card group">
-          <div className="flex items-start justify-between">
-            <div className="rounded-lg bg-cyan-300/10 p-3">
-              <span className="material-symbols-outlined text-[32px] text-cyan-200">link</span>
-            </div>
-            <span className="mono-label text-cyan-200">Active</span>
-          </div>
-          <div className="mt-8">
-            <p className="mono-label mb-1">Total Links</p>
-            <p className="text-5xl font-bold text-slate-100 transition group-hover:text-cyan-200">
-              {displayUrls.length}
-            </p>
-          </div>
-        </div>
-        <div className="metric-card group">
-          <div className="flex items-start justify-between">
-            <div className="rounded-lg bg-cyan-300/10 p-3">
-              <span className="text-cyan-300">
-                <FiMousePointer size={32} aria-hidden="true" />
-              </span>
-            </div>
-            <span className="mono-label text-cyan-200">Tracked</span>
-          </div>
-          <div className="mt-8">
-            <p className="mono-label mb-1">Total Clicks</p>
-            <p className="text-5xl font-bold text-slate-100 transition group-hover:text-cyan-200">
-              {totalClicks}
-            </p>
-          </div>
-        </div>
-        <div className="metric-card group bg-gradient-to-br from-cyan-300/10 to-transparent">
-          <div className="flex items-start justify-between">
-            <div className="rounded-lg bg-white/10 p-3">
-              <span className="material-symbols-outlined text-[32px] text-[#bac9cc]">query_stats</span>
-            </div>
-            <span className="mono-label">Latest</span>
-          </div>
-          <div className="mt-8">
-            <p className="mono-label mb-1">Recent Link</p>
-            <p className="truncate text-lg font-bold text-slate-100">
-              {mostRecentUrl ? mostRecentUrl.short_url : "No links yet"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <section className="space-y-6 lg:col-span-2">
-          <div className="flex items-center justify-between px-2">
-            <h2 className="section-title">Recent Activity</h2>
-            <button
-              onClick={() => router.push("/")}
-              className="hidden items-center gap-2 text-sm font-medium text-[#bac9cc] transition hover:text-cyan-200 md:flex"
-            >
-              Shorten new link
-              <FaArrowLeftLong />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {isInitialLoad || loading ? (
-              <div className="surface flex justify-center rounded-xl py-10">
-                <Spinner />
-              </div>
-            ) : error ? (
-              <div className="rounded-xl border border-rose-300/20 bg-rose-500/10 px-4 py-4 text-center text-rose-200">
-                {error}
-              </div>
-            ) : displayUrls.length === 0 ? (
-              <div className="surface rounded-xl px-4 py-10 text-center text-[#bac9cc]">
-                No URLs found. Start by creating your first short URL.
-              </div>
-            ) : (
-              topUrls.map((url) => (
-                <article
-                  key={url.id}
-                  className="surface rounded-xl p-6 transition duration-300 hover:border-cyan-300/30"
-                >
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex min-w-0 items-center gap-4">
-                      <div className="icon-box">
-                        <span className="transition group-hover:text-cyan-300">
-                          <FiFileText size={22} aria-hidden="true" />
-                        </span>
-                      </div>
-                      <div className="min-w-0">
-                        <h3 className="truncate font-bold text-slate-100">{url.original_url}</h3>
-                        <p className="truncate font-mono text-sm text-[#bac9cc]">{url.short_url}</p>
-                      </div>
-                    </div>
-
-                    <div className="flex w-full flex-wrap items-center justify-end gap-3 md:w-auto">
-                      <div className="mr-1 hidden flex-col items-end md:flex">
-                        <span className="mono-label text-slate-100">{url.clicks} clicks</span>
-                        <span className="mono-label">{dateFormatter.format(new Date(url.created_at))}</span>
-                      </div>
-                      <button
-                        onClick={() => handleCopyOriginalUrl(url.original_url)}
-                        className="subtle-button"
-                        aria-label="Copy original URL"
-                      >
-                        <span className="material-symbols-outlined text-[20px]">content_copy</span>
-                        <span className="sr-only">Copy original</span>
-                      </button>
-                      <button
-                        onClick={() => handleCopyShortUrl(url.short_url)}
-                        className="subtle-button"
-                        aria-label="Copy short URL"
-                      >
-                        <span className="material-symbols-outlined text-[20px]">link</span>
-                        <span className="sr-only">Copy short</span>
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(url.id)}
-                        disabled={deleteLoading === url.id}
-                        className="rounded-lg border border-rose-300/20 bg-rose-500/10 px-3 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-500/15 hover:text-rose-100 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {deleteLoading === url.id ? "Deleting..." : "Delete"}
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              ))
-            )}
-          </div>
-        </section>
-
-        <aside className="space-y-6">
-          <div className="rounded-xl bg-cyan-300 p-6 text-cyan-950 shadow-xl shadow-cyan-300/10">
-            <h3 className="text-2xl font-bold">Quick Shorten</h3>
-            <p className="mt-2 text-sm font-medium text-cyan-950/70">
-              Create another clean link from the home shortener.
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-950 px-4 py-3 font-bold text-cyan-200 transition hover:opacity-90"
-            >
-              <span className="material-symbols-outlined">bolt</span>
-              Shorten Now
-            </button>
-          </div>
-
-          <div className="surface-strong rounded-xl p-6">
-            <p className="eyebrow">Account</p>
-            <div className="mt-4 flex items-start gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-cyan-300/30 bg-cyan-300/10 text-xl font-bold text-cyan-100">
-                {(user.username || user.email || "U").slice(0, 1).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-lg font-semibold text-slate-100">
-                  {user.username || "Signed in user"}
-                </p>
-                <p className="truncate text-sm leading-6 text-[#bac9cc]">{user.email}</p>
-                <p className="mt-3 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-cyan-200">
-                  Account active
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="surface rounded-xl p-6">
-            <p className="eyebrow">Active Tags</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {["Personal", "Campaigns", "Reference", "Shared"].map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full bg-[#30353b] px-3 py-1 text-xs font-medium text-[#bac9cc] transition hover:bg-cyan-300/15 hover:text-cyan-200"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="surface rounded-xl p-6">
-            <p className="eyebrow">Activity summary</p>
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between rounded-lg border border-white/[0.05] bg-[#171c21] px-4 py-3">
-                <span className="text-sm text-[#bac9cc]">Most recent update</span>
-                <span className="text-sm font-medium text-slate-100">
-                  {mostRecentUrl ? dateFormatter.format(new Date(mostRecentUrl.created_at)) : "None"}
-                </span>
-              </div>
-              <div className="flex items-center justify-between rounded-lg border border-white/[0.05] bg-[#171c21] px-4 py-3">
-                <span className="text-sm text-[#bac9cc]">Latest created</span>
-                <span className="text-sm font-medium text-slate-100">
-                  {mostRecentUrl
-                    ? dateTimeFormatter.format(new Date(mostRecentUrl.created_at))
-                    : "None"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <section className="rounded-xl border border-rose-300/10 bg-gradient-to-b from-transparent to-rose-500/5 p-6">
-            <div className="flex flex-col gap-5">
-              <div>
-                <h2 className="flex items-center gap-2 text-xl font-bold text-rose-200">
-                  <span className="material-symbols-outlined">warning</span>
-                  Danger Zone
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-[#bac9cc]">
-                  Deleting your account will permanently remove your shortened links and account
-                  data.
-                </p>
-              </div>
-              <button
-                onClick={handleDeleteAccountClick}
-                className="rounded-lg border border-rose-300/40 px-5 py-3 text-sm font-bold text-rose-200 transition hover:bg-rose-500/10"
-              >
-                Delete Account
+      <section className="band">
+        <div className="frame flex flex-col gap-6 py-10 sm:py-14 md:flex-row md:items-end md:justify-between">
+          <h1 className="display text-[clamp(4rem,13vw,12rem)]">Your links</h1>
+          <div className="flex flex-col items-start gap-3 md:items-end">
+            <p className="font-bold">{user.username || user.email}</p>
+            <div className="flex gap-3">
+              <button onClick={() => router.push("/")} className="btn btn-signal">
+                New link
+              </button>
+              <button onClick={handleLogout} className="btn">
+                Log out
               </button>
             </div>
-          </section>
-        </aside>
-      </div>
-    </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="band">
+        <dl className="frame grid grid-cols-2">
+          <div className="border-r-rule border-ink py-6 pr-4">
+            <dt className="font-bold">Links</dt>
+            <dd className="display mt-2 text-7xl sm:text-8xl">{displayUrls.length}</dd>
+          </div>
+          <div className="py-6 pl-4 sm:pl-8">
+            <dt className="font-bold">Clicks</dt>
+            <dd className="display mt-2 text-7xl sm:text-8xl">{totalClicks}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="band">
+        <div className="frame py-8 sm:py-10">
+          {isInitialLoad || loading ? (
+            <Spinner />
+          ) : error ? (
+            <p role="alert" className="border-rule border-ink bg-alarm px-4 py-3 font-bold">
+              {error}
+            </p>
+          ) : displayUrls.length === 0 ? (
+            <p className="text-lg leading-7">
+              You haven&apos;t made any links yet.{" "}
+              <Link href="/" className="text-link">
+                Shorten your first one
+              </Link>
+            </p>
+          ) : (
+            <UrlTable
+              urls={displayUrls}
+              onCopyOriginalUrl={handleCopyOriginalUrl}
+              onCopyShortUrl={handleCopyShortUrl}
+              onDeleteUrl={handleDeleteClick}
+              deleteLoading={deleteLoading}
+            />
+          )}
+        </div>
+      </section>
+
+      <section className="band">
+        <div className="frame flex flex-col gap-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-xl leading-6">
+            Deleting your account removes it and every short link you made.
+          </p>
+          <button onClick={handleDeleteAccountClick} className="btn btn-alarm">
+            Delete account
+          </button>
+        </div>
+      </section>
+    </>
   );
 }

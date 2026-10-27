@@ -1,10 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import {
-  canShortenMore,
-  incrementShortenCount
-} from "@utils/urlUtils";
+import React, { useEffect, useState } from "react";
+import { canShortenMore, incrementShortenCount } from "@utils/urlUtils";
 import { useNotification } from "@components/context/NotificationContext";
 import { useUser } from "@components/context/UserContext";
 import { useRecentShortens } from "@hooks/useRecentShortens";
@@ -12,8 +9,7 @@ import { apiClient } from "@lib/api-client";
 import { UrlDetails } from "./UrlDetails";
 import { UrlParameters } from "./UrlParameters";
 import { RecentShortens } from "./RecentShortens";
-import { FaArrowLeftLong } from "react-icons/fa6";
-import { FiActivity, FiBarChart2, FiShield } from "react-icons/fi";
+import Link from "next/link";
 
 export const UrlShortener = () => {
   const [url, setUrl] = useState("");
@@ -22,35 +18,51 @@ export const UrlShortener = () => {
   const [error, setError] = useState("");
   const { showNotification } = useNotification();
   const { user } = useUser();
-  const { addShorten } = useRecentShortens();
+  const recent = useRecentShortens();
+  const { addShorten } = recent;
+
+  // A submit before hydration falls back to a native GET (/?url=...); recover the link from it
+  useEffect(() => {
+    const pending = new URLSearchParams(window.location.search).get("url");
+    if (!pending) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      window.history.replaceState(null, "", window.location.pathname);
+      setUrl(pending);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const validateUrl = async (urlString: string) => {
     try {
       const url = new URL(urlString);
       if (url.protocol !== "https:") {
-        throw new Error("Only HTTPS URLs are allowed");
+        throw new Error("That link isn't HTTPS. Use a link that starts with https://");
       }
       return true;
     } catch (error) {
-      if (error instanceof Error) {
+      if (error instanceof Error && !(error instanceof TypeError)) {
         setError(error.message);
       } else {
-        setError("Invalid URL");
+        setError("That doesn't look like a link. Paste a full address starting with https://");
       }
       return false;
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Read from the form, not state: a link pasted before hydration never reaches state
+    const url = String(new FormData(e.currentTarget).get("url") ?? "").trim();
+    setUrl(url);
     setError("");
     setLoading(true);
 
     if (!canShortenMore()) {
-      showNotification(
-        "You have reached the maximum number of URL shortenings (3). Please sign up to continue.",
-        "info"
-      );
+      showNotification("You've used your 3 free links. Sign up to make more.", "info");
       setLoading(false);
       return;
     }
@@ -60,7 +72,7 @@ export const UrlShortener = () => {
       return;
     }
 
-      try {
+    try {
       const token = localStorage.getItem("token");
       const response = await apiClient.shortenUrl(
         {
@@ -73,90 +85,74 @@ export const UrlShortener = () => {
       // Add to recent shortenings immediately after shortening
       addShorten(url, generatedShortUrl);
       incrementShortenCount();
-      showNotification("URL shortened successfully!", "success");
+      showNotification("Link shortened", "success");
     } catch (error) {
       console.error("Error shortening URL:", error);
       setError(error instanceof Error ? error.message : "Failed to shorten URL");
-      showNotification("Failed to shorten URL", "error");
+      showNotification("Couldn't shorten that link", "error");
     }
     setLoading(false);
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl">
-      <div className="space-y-8">
-        <form onSubmit={handleSubmit} id="shorten" className="space-y-4">
-          <div className="group relative mx-auto max-w-2xl">
-            <div className="absolute -inset-1 rounded-xl bg-gradient-to-r from-cyan-300/20 to-cyan-100/20 opacity-30 blur transition duration-700 group-focus-within:opacity-100" />
-            <div className="surface relative flex flex-col gap-3 rounded-xl p-2 shadow-2xl sm:flex-row sm:items-center">
-              <div className="flex min-w-0 flex-1 items-center gap-3 px-4">
-                <input
-                  type="url"
-                  id="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="min-w-0 flex-1 border-none bg-transparent py-4 text-base text-slate-100 outline-none placeholder:text-[#849396]/70 focus:ring-0"
-                  placeholder="Paste your loooooong URL here..."
-                  required
-                />
-              </div>
-              <button type="submit" disabled={loading} className="primary-button shrink-0 px-7 py-4 flex gap-2 items-center justify-center">
-                <span>{loading ? "Shortening..." : "Shorten"}</span>
-                <FaArrowLeftLong size={18} />
-              </button>
-            </div>
+    <>
+      <section className="band">
+        <form onSubmit={handleSubmit} id="shorten" className="frame py-8 sm:py-10">
+          <label htmlFor="url" className="field-label text-base">
+            Long link
+          </label>
+          <div className="flex flex-col sm:flex-row">
+            <input
+              type="url"
+              id="url"
+              name="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="field url min-w-0 flex-1 py-4 text-lg sm:text-xl"
+              placeholder="https://"
+              aria-describedby="url-hint"
+              required
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn btn-signal -mt-[3px] px-10 py-4 text-xl sm:-ml-[3px] sm:mt-0"
+            >
+              {loading ? "Shortening…" : "Shorten"}
+            </button>
           </div>
 
           {error && (
-            <p className="mx-auto max-w-2xl rounded-lg border border-rose-300/20 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+            <p role="alert" className="mt-4 border-rule border-ink bg-alarm px-4 py-3 font-bold">
               {error}
             </p>
           )}
 
-          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 text-sm text-[#bac9cc]">
-            <p>Only secure HTTPS URLs are accepted</p>
-          </div>
+          <p id="url-hint" className="mt-4 max-w-2xl leading-6">
+            HTTPS links only.{" "}
+            {user ? (
+              "Your links are saved to your account."
+            ) : (
+              <>
+                Without an account you can make 3 links.{" "}
+                <Link href="/signup" className="text-link">
+                  Sign up
+                </Link>{" "}
+                for unlimited links and click counts.
+              </>
+            )}
+          </p>
         </form>
+      </section>
 
-        <div className="grid gap-6 pt-4 md:grid-cols-3">
-          <div className="metric-card text-left">
-            <span className="text-cyan-300">
-              <FiActivity size={24} aria-hidden="true" />
-            </span>
-            <h3 className="mt-4 font-bold text-slate-100">Ultra Fast</h3>
-            <p className="mt-2 text-sm leading-6 text-[#bac9cc]">
-              Paste a link and shorten it in one clean step.
-            </p>
-          </div>
-          <div className="metric-card text-left">
-            <span className="text-cyan-300">
-              <FiBarChart2 size={24} aria-hidden="true" />
-            </span>
-            <h3 className="mt-4 font-bold text-slate-100">Real-time Activity</h3>
-            <p className="mt-2 text-sm leading-6 text-[#bac9cc]">
-              Keep useful links close without hunting through old tabs.
-            </p>
-          </div>
-          <div className="metric-card text-left">
-            <span className="text-cyan-300">
-              <FiShield size={24} aria-hidden="true" />
-            </span>
-            <h3 className="mt-4 font-bold text-slate-100">Secure Routing</h3>
-            <p className="mt-2 text-sm leading-6 text-[#bac9cc]">
-              Signed-in users can manage links and view the data behind them.
-            </p>
-          </div>
-        </div>
+      {shortUrl && (
+        <>
+          <UrlDetails shortUrl={shortUrl} originalUrl={url} />
+          {user && <UrlParameters originalUrl={url} />}
+        </>
+      )}
 
-        {shortUrl && (
-          <div className="space-y-6">
-            <UrlDetails shortUrl={shortUrl} originalUrl={url} />
-            {user && <UrlParameters originalUrl={url} />}
-          </div>
-        )}
-
-        <RecentShortens />
-      </div>
-    </div>
+      <RecentShortens recentShortens={recent.recentShortens} onClear={recent.clearRecentShortens} />
+    </>
   );
 };

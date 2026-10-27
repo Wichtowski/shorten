@@ -11,47 +11,37 @@ interface UrlDetailsProps {
 export const UrlDetails = ({ shortUrl, originalUrl }: UrlDetailsProps) => {
   const { showNotification } = useNotification();
   const fullShortUrl = formatShortUrl(shortUrl);
+  const displayUrl = fullShortUrl.replace(/^https?:\/\//, "");
+  // Wrap between host and path so the slug never splits across lines
+  const pathStart = displayUrl.indexOf("/");
+  const host = pathStart === -1 ? displayUrl : displayUrl.slice(0, pathStart);
+  const path = pathStart === -1 ? "" : displayUrl.slice(pathStart);
 
   return (
-    <div className="surface rounded-xl p-6 sm:p-8">
-      <div className="space-y-5">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="eyebrow">Result</p>
-            <h3 className="mt-3 text-2xl font-semibold text-slate-100">
-              Your short link is ready
-            </h3>
-          </div>
-          <span className="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-100">
-            Copiable
-          </span>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-lg border border-white/[0.05] bg-[#0a0f14] p-4">
-            <p className="mono-label">
-              Original URL
-            </p>
-            <p className="mt-2 break-all text-sm leading-6 text-slate-100">{originalUrl}</p>
-          </div>
-
-          <div className="rounded-lg border border-cyan-300/20 bg-cyan-300/5 p-4">
-            <p className="mono-label text-cyan-200">
-              Short URL
-            </p>
-            <p className="mt-2 break-all text-sm font-medium text-slate-50">{fullShortUrl}</p>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input type="text" value={fullShortUrl} readOnly className="field flex-1" />
+    <section className="band bg-signal" aria-live="polite">
+      <div className="frame py-8 sm:py-12">
+        <p className="font-bold">Your short link</p>
+        <p className="display mt-3 text-[clamp(2.75rem,9vw,9rem)] [overflow-wrap:anywhere]">
+          {host}
+          <wbr />
+          {path}
+        </p>
+        <p className="mt-6 max-w-3xl break-all leading-6">
+          Goes to <span className="url">{originalUrl}</span>
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
           <CopyButton
             value={fullShortUrl}
-            onCopied={() => showNotification("URL copied to clipboard!", "success")}
-            className="primary-button px-5 py-3"
-          />
+            onCopied={() => showNotification("Link copied", "success")}
+            className="btn bg-ink px-8 text-lg text-paper"
+          >
+            Copy link
+          </CopyButton>
+          <a href={fullShortUrl} target="_blank" rel="noopener noreferrer" className="btn text-lg">
+            Open
+          </a>
         </div>
       </div>
-    </div>
+    </section>
   );
 };

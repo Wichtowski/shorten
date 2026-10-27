@@ -64,61 +64,65 @@ export const UrlParameters = ({ originalUrl }: UrlParametersProps) => {
     }
   };
 
-  return (
-    <div className="surface rounded-xl p-6 sm:p-8">
-      <div className="mb-5 space-y-2">
-        <p className="eyebrow">Optional</p>
-        <h3 className="text-xl font-semibold text-slate-100">Add parameters to the original URL</h3>
-        <p className="text-sm leading-6 text-[#bac9cc]">
-          Build a parameterized version of the source link before sharing it elsewhere
-        </p>
-      </div>
-      <div className="space-y-3">
-        {parameters.map((param, index) => (
-          <div key={index} className="flex flex-col gap-2 md:flex-row md:items-center">
-            <input
-              type="text"
-              value={param.key}
-              onChange={(e) => updateParameter(index, "key", e.target.value)}
-              placeholder="Parameter name"
-              className="field flex-1 px-3 py-2"
-            />
-            <input
-              type="text"
-              value={param.value}
-              onChange={(e) => updateParameter(index, "value", e.target.value)}
-              placeholder="Value"
-              className="field flex-1 px-3 py-2"
-            />
-            <button
-              onClick={() => removeParameter(index)}
-              className="subtle-button px-3 py-2 text-sm text-rose-200 hover:text-rose-100"
-            >
-              Remove
-            </button>
-          </div>
-        ))}
-        <button
-          onClick={addParameter}
-          className="subtle-button"
-        >
-          Add parameter
-        </button>
-      </div>
+  const urlWithParams = generateUrlWithParams();
 
-      <div className="mt-6">
-        <h4 className="mono-label mb-3">
-          Original URL with parameters
-        </h4>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <input type="text" value={generateUrlWithParams()} readOnly className="field flex-1" />
-          <CopyButton
-            value={generateUrlWithParams()}
-            onCopied={() => showNotification("URL with parameters copied to clipboard!", "success")}
-            className="primary-button px-5 py-3"
+  return (
+    <section className="band">
+      <div className="frame py-8 sm:py-10">
+        <h2 className="display text-5xl sm:text-6xl">Add parameters</h2>
+        <p className="mt-3 max-w-2xl leading-6">
+          Build a version of the original link with query parameters, like utm_source, before you
+          share it.
+        </p>
+        <div className="mt-6 space-y-3">
+          {parameters.map((param, index) => (
+            <div key={index} className="flex flex-col gap-2 md:flex-row">
+              <input
+                type="text"
+                value={param.key}
+                onChange={(e) => updateParameter(index, "key", e.target.value)}
+                placeholder="Name"
+                aria-label={`Parameter ${index + 1} name`}
+                className="field url flex-1"
+              />
+              <input
+                type="text"
+                value={param.value}
+                onChange={(e) => updateParameter(index, "value", e.target.value)}
+                placeholder="Value"
+                aria-label={`Parameter ${index + 1} value`}
+                className="field url flex-1"
+              />
+              <button type="button" onClick={() => removeParameter(index)} className="btn">
+                Remove
+              </button>
+            </div>
+          ))}
+          <button type="button" onClick={addParameter} className="btn">
+            Add parameter
+          </button>
+        </div>
+
+        <label htmlFor="url-with-params" className="field-label mt-8">
+          Original link with parameters
+        </label>
+        <div className="flex flex-col sm:flex-row">
+          <input
+            id="url-with-params"
+            type="text"
+            value={urlWithParams}
+            readOnly
+            className="field url flex-1 bg-smoke"
           />
+          <CopyButton
+            value={urlWithParams}
+            onCopied={() => showNotification("Link with parameters copied", "success")}
+            className="btn btn-signal -mt-[3px] sm:-ml-[3px] sm:mt-0"
+          >
+            Copy
+          </CopyButton>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
