@@ -25,7 +25,11 @@ export const metadata: Metadata = {
   title: "Shorten",
   description: "Turn long HTTPS links into short ones and see how often they get clicked.",
   icons: {
-    icon: "/favicon.ico"
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+    apple: "/apple-touch-icon.png"
   }
 };
 
